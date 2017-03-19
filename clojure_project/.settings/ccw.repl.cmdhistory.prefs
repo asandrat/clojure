@@ -1,2 +1,2 @@
-cmdhistory=["(boot)" "(use 'clojure_project.core)" "(use 'clojure-project.core)" "(boot)"]
+cmdhistory=["(boot)" "(use 'clojure_project.core)" "(use 'clojure-project.core)" "(boot)" "lein ring server"]
 eclipse.preferences.version=1

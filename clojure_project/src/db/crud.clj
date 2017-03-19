@@ -17,13 +17,13 @@
       (doall res))))
 
 
-(defn save-fruit [name price quantity unit descent currency]
+(defn save-fruit [name price currency quantity unit descent]
   (jdbc/with-connection
     db
     (jdbc/insert-values
       :fruit
-      [:name :price :quantity :unit :descent :currency]
-      [name price quantity unit descent currency])))
+      [:name :price :currency :quantity :unit :descent]
+      [name price currency quantity unit descent])))
 
 (defn delete-fruit [id]
   (jdbc/with-connection
@@ -40,12 +40,12 @@
         ["SELECT * FROM fruit WHERE id= ?" id]
         (doall res)))))
 
-(defn update-fruit [id name price quantity unit descent quantity]
+(defn update-fruit [id name price currency quantity unit descent]
   (jdbc/with-connection
     db
     (jdbc/update-values
       :fruit
       ["id=?" id]
-      {:name name :price price :quantity quantity :unit unit :descent descent})))
+      {:name name :price price :currency currency :quantity quantity :unit unit :descent descent})))
 
 

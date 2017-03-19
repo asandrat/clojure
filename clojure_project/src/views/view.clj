@@ -4,6 +4,7 @@
 (defn common [& body]
   (html5
     [:head
-     [:title "Welcome to online fruit shop"]]
+     [:title "Online fruit shop"]
+     (include-css "/stylesheet.css")]
     [:body body]))
 

@@ -11,9 +11,9 @@
   (layout/common
     [:h2 "Welcome to my fruitstore"]
     [:br]
-    [:a {:href "/add"} "Add new" ]
-    [:br]
-    [:a {:href "/show"} "Show fruits" ]))
+    [:a {:href "/add"} "Request new type of fruit" ]
+    [:&nbsp]
+    [:a {:href "/show"} "Show available fruits" ]))
 
 
 (defn show-fruits []
@@ -41,7 +41,7 @@
             [:td [:a {:href (str "/delete/" (h (:id fruit)))} "delete"]]
             [:td [:a {:href (str "/update/" (h (:id fruit)))} "update"]]]))])
 
-(defn insert_update [& [name price quantity unit descent currency error id]]
+(defn insert_update [& [name price currency quantity unit descent error id]]
   (layout/common
   [:h2 (if (nil? id) "Add new fruit" "Updating fruit")]
   (form-to {:id "frm_insert"}
@@ -54,14 +54,14 @@
            (text-field "name" name)
            [:p "Price:" ]
            (text-field {:id "price"} "price" price)
+           [:p "Currency:"]
+           (text-field "currency" currency)
            [:p "Quantity:"]
-           (text-area {:rows 5 :cols 30} "quantity" quantity)
+           (text-field {:rows 5 :cols 30} "quantity" quantity)
            [:p "unit:"]
            (text-field "unit" unit)
            [:p "Descent:"]
            (text-field "descent" descent)
-           [:p "Currency:"]
-           (text-field "currency" currency)
            [:br] [:br]
            (submit-button {:onclick " return javascript:validateInsertForm()"} (if (nil? id)"Insert" "Update"))
            [:hr]
@@ -72,35 +72,26 @@
   (if (re-find #"^-?\d+\.?\d*$" s)
     (read-string s)))
 
-(defn save-fruit [name price quantity unit descent currency & [id]]
+(defn save-fruit [name price currency quantity unit descent & [id]]
   (cond
     (empty? name)
-    (insert_update  name price quantity unit descent currency "Enter name" id)
+    (insert_update  name price currency quantity unit descent "Fruit name must be entered" id)
     (nil? (parse-number price))
-    (insert_update  name price quantity unit descent currency "Price must be a number!" id)
-    (<= (parse-number price) 0)
-    (insert_update  name price quantity unit descent currency "Price must be a positive number!" id)
-    (empty? quantity)
-    (insert_update  name price quantity unit descent currency "Enter quantity!" id)
-    (empty? unit)
-    (insert_update  name price quantity unit descent currency "Enter unit" id)
-    (empty? descent)
-    (insert_update  name price quantity unit descent currency "Enter descent" id)
+    (insert_update  name price currency quantity unit descent "Price must be a number" id)
     (empty? currency)
-    (insert_update  name price quantity unit descent currency "Enter currency" id)
+    (insert_update  name price currency quantity unit descent "Currency must be entered!" id)
+    (<= (parse-number quantity) 0)
+    (insert_update  name price currency quantity unit descent "Enter quantity!" id)
+    (empty? unit)
+    (insert_update  name price currency quantity unit descent "Please fill unit" id)
+    (empty? descent)
+    (insert_update  name price currency quantity unit descent "Enter descent" id)
     :else
   (do
     (if (nil? id)
-      (crud/save-fruit name price quantity unit descent currency)
-      (crud/update-fruit id name price quantity unit descent currency))
+      (crud/save-fruit name price currency quantity unit descent)
+      (crud/update-fruit id name price currency quantity unit descent))
   (ring/redirect "/show"))))
-
-
-
-(defn format-time [timestamp]
-  (-> "dd/MM/yyyy"
-      (java.text.SimpleDateFormat.)
-      (.format timestamp)))
 
 (defn delete-fruit [id]
   (when-not (str/blank? id)
@@ -108,7 +99,7 @@
   (ring/redirect "/show"))
 
 (defn show-fruit [fruit]
-  (insert_update (:name fruit) (:price fruit) (:quantity fruit) (:unit fruit) (:descent fruit) nil (:id fruit)))
+  (insert_update (:name fruit) (:price fruit) (:currency fruit) (:quantity fruit) (:unit fruit) (:descent fruit) nil (:id fruit)))
 
 (defn show []
   (layout/common
@@ -119,9 +110,9 @@
 (defroutes home-routes
   (GET "/" [] (indexpage))
   (GET "/add" [] (insert_update))
-  (GET "/add" [name price quantity unit descent currency error id] (insert_update name price quantity unit descent currency error id))
+  (GET "/add" [name price currency quantity unit descent error id] (insert_update name price currency quantity unit descent error id))
   (GET "/show" [] (show))
-  (POST "/save" [name price quantity unit descent currency id] (save-fruit name price quantity unit descent currency id))
+  (POST "/save" [name price quantity unit descent currency id] (save-fruit name price currency quantity unit descent id))
   (GET "/delete/:id" [id] (delete-fruit id))
   (GET "/update/:id"[id] (show-fruit (crud/find-fruit id))))
 
