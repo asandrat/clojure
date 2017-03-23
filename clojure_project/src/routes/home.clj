@@ -60,12 +60,13 @@
             [:td [:a {:href (str "/delete/" (h (:id fruit)))} "delete"]]
             [:td [:a {:href (str "/update/" (h (:id fruit)))} "update"]]]))])
 
-(defn update [& [name price currency quantity reqqty unit descent error id]]
+(defn update [& [name price currency quantity reqqty unit descent id error]]
   (layout/common
   [:h2 "Buy fruit"]
+   [:a {:href "/" :class "back"} "Go Back"]
   (form-to {:id "frmBuy"}
     [:post "/buy"]
-           [:p "Id:"])
+           [:p "Id:"]
            (text-field {:readonly true} "id" id)
            [:p "Name:"]
            (text-field {:readonly true} "name" name)
@@ -82,12 +83,12 @@
            [:br] [:br]
            (submit-button {:onclick " return javascript:validateInsertForm()"} "Buy")
            [:hr]
-           [:p {:style "color:red;"} error])
-    [:a {:href "/" :class "back"} "Home"])
+           [:p {:style "color:red;"} error])))
 
 (defn insert_update [& [name price currency quantity unit descent error id]]
   (layout/common
   [:h2 (if (nil? id) "Request fruit" "Buy fruit")]
+   [:a {:href "/" :class "back"} "Go Back"]
   (form-to {:id "frm_insert"}
     [:post "/save"]
            (if (not (nil? id))
@@ -109,8 +110,7 @@
            [:br] [:br]
            (submit-button {:onclick " return javascript:validateInsertForm()"} (if (nil? id)"Insert" "Update"))
            [:hr]
-           [:p {:style "color:red;"} error])
-    [:a {:href "/" :class "back"} "Home"]))
+           [:p {:style "color:red;"} error])))
 
 (defn parse-number [s]
   (if (re-find #"^-?\d+\.?\d*$" s)
@@ -159,7 +159,7 @@
   (insert_update (:name fruit) (:price fruit) (:currency fruit) (:quantity fruit) (:unit fruit) (:descent fruit) nil (:id fruit)))
 
 (defn update-fruit [fruit]
-  (update (:name fruit) (:price fruit) (:currency fruit) (:quantity fruit) (:unit fruit) (:descent fruit) nil (:id fruit)))
+  (update (:name fruit) (:price fruit) (:currency fruit) (:quantity fruit) (:reqqty fruit) (:unit fruit) (:descent fruit) (:id fruit) nil))
 
 (defn show []
   (layout/common
@@ -181,7 +181,7 @@
   (GET "/requested" [] (requested))
   (POST "/save" [name price quantity unit descent currency id] (save-fruit name price currency quantity unit descent id))
   (POST "/buy" [name price currency quantity reqqty unit descent id] (buy-fruit name price currency quantity reqqty unit descent id))
-  (GET "/buy/:id" [id] (update (crud/find-fruit id)))
+  (GET "/buy/:id" [id] (update-fruit (crud/find-fruit id)))
   (GET "/delete/:id" [id] (delete-fruit id))
   (GET "/update/:id"[id] (show-fruit (crud/find-fruit id))))
 

@@ -1,2 +1,2 @@
-cmdhistory=["(boot)" "(use 'clojure_project.core)" "(use 'clojure-project.core)" "(boot)" "lein ring server" "(use 'clojure-project.core)" "(start-server \\"9987\\")" "(use 'clojure-project.core)" "(start-server \\"9870\\")"]
+cmdhistory=["(use 'clojure-project.core)" "lein ring server" "(use 'clojure-project.core)" "(start-server \\"9987\\")" "(use 'clojure-project.core)" "(start-server \\"9870\\")" "(System . exit 0)" "(. System exit 0)" "lein deps" "(use 'clojure-project.core)" "(start-server \\"9797\\")"]
 eclipse.preferences.version=1
