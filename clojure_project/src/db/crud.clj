@@ -13,9 +13,15 @@
   (jdbc/with-connection
     db
     (jdbc/with-query-results res
-      ["SELECT * FROM fruit ORDER BY id ASC"]
+      ["SELECT * FROM fruit WHERE stock=1 ORDER BY id ASC"]
       (doall res))))
 
+(defn read-request-fruit []
+  (jdbc/with-connection
+    db
+    (jdbc/with-query-results res
+      ["SELECT * FROM fruit WHERE stock=0 ORDER BY name ASC"]
+      (doall res))))
 
 (defn save-fruit [name price currency quantity unit descent]
   (jdbc/with-connection
@@ -48,4 +54,11 @@
       ["id=?" id]
       {:name name :price price :currency currency :quantity quantity :unit unit :descent descent})))
 
+(defn decreaseFruitQty [id quantity]
+  (jdbc/with-connection
+    db
+    (jdbc/update-values
+      :fruit
+      ["id=?" id]
+      {:quantity quantity})))
 

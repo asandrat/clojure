@@ -9,11 +9,14 @@
 
 (defn indexpage []
   (layout/common
-    [:h2 "Welcome to my fruitstore"]
+    [:div {:id "content"}
+    [:h1 {:class "text-success"} "Welcome to my fruitstore"]
     [:br]
     [:a {:href "/add"} "Request new type of fruit" ]
-    [:&nbsp]
-    [:a {:href "/show"} "Show available fruits" ]))
+    [:br]
+    [:a {:href "/show"} "Show available fruits" ]
+    [:br]
+    [:a {:href "/requested"} "Show requested fruits" ]]))
 
 
 (defn show-fruits []
@@ -26,8 +29,7 @@
      [:th {:width 250} "Quantity"]
      [:th "Unit"]
      [:th "Descent"]
-     [:th "Currency"]
-     [:th "Update"]]]
+     [:th "Currency"]]]
    (into [:tbody]
          (for [fruit (crud/read-fruit)]
            [:tr
@@ -38,12 +40,54 @@
             [:td (:unit fruit)]
             [:td (:descent fruit)]
             [:td (:currency fruit)]
+            [:td [:a {:href (str "/update/" (h (:id fruit)))} "update"]]
+            [:td [:a {:href (str "/buy/" (h (:id fruit)))} "buy"]]]))])
+
+(defn show-requested-fruits []
+  [:table {:border 1}
+   [:thead
+    [:tr
+     [:th "Name"]
+     [:th "Quantity"]
+     [:th "Descent"]
+     [:th "Update"]]]
+   (into [:tbody]
+         (for [fruit (crud/read-request-fruit)]
+           [:tr
+            [:td (:name fruit)]
+            [:td (:quantity fruit)]
+            [:td (:descent fruit)]
             [:td [:a {:href (str "/delete/" (h (:id fruit)))} "delete"]]
             [:td [:a {:href (str "/update/" (h (:id fruit)))} "update"]]]))])
 
+(defn update [& [name price currency quantity reqqty unit descent error id]]
+  (layout/common
+  [:h2 "Buy fruit"]
+  (form-to {:id "frmBuy"}
+    [:post "/buy"]
+           [:p "Id:"])
+           (text-field {:readonly true} "id" id)
+           [:p "Name:"]
+           (text-field {:readonly true} "name" name)
+           [:p "Price:" ]
+           (text-field {:id "price"} "price" price)
+           [:p "Currency:"]
+           (text-field {:readonly true} "currency" currency)
+           [:p "unit:"]
+           (text-field {:readonly true} "unit" unit)
+           [:p "Available quantity:"]
+           (text-field {:readonly true} "quantity" quantity)
+           [:p "Requsted quantity:"]
+           (text-field "reqqty" reqqty)
+           [:br] [:br]
+           (submit-button {:onclick " return javascript:validateInsertForm()"} "Buy")
+           [:hr]
+           [:p {:style "color:red;"} error])
+    [:a {:href "/" :class "back"} "Home"])
+
 (defn insert_update [& [name price currency quantity unit descent error id]]
   (layout/common
-  [:h2 (if (nil? id) "Add new fruit" "Updating fruit")]
+  [:h2 (if (nil? id) "Request fruit" "Buy fruit")]
   (form-to {:id "frm_insert"}
     [:post "/save"]
            (if (not (nil? id))
@@ -91,6 +135,19 @@
     (if (nil? id)
       (crud/save-fruit name price currency quantity unit descent)
       (crud/update-fruit id name price currency quantity unit descent))
+  (ring/redirect "/requested"))))
+
+(defn buy-fruit [name price currency quantity reqqty unit descent error &[id]]
+  (cond
+    (<= (parse-number quantity) 0)
+    (update  name price currency quantity reqqty unit descent "Fruit is out of stock" id)
+    (<= (parse-number reqqty) 0)
+    (update  name price currency quantity reqqty unit descent "You have to request qunatity above 0" id)
+    (<= (parse-number quantity) (parse-number reqqty))
+    (update  name price currency quantity reqqty unit descent "Requested qunatity is not available" id)
+    :else
+  (do
+    (crud/decreaseFruitQty id (- (Integer/parseInt quantity) (Integer/parseInt reqqty)))
   (ring/redirect "/show"))))
 
 (defn delete-fruit [id]
@@ -101,10 +158,19 @@
 (defn show-fruit [fruit]
   (insert_update (:name fruit) (:price fruit) (:currency fruit) (:quantity fruit) (:unit fruit) (:descent fruit) nil (:id fruit)))
 
+(defn update-fruit [fruit]
+  (update (:name fruit) (:price fruit) (:currency fruit) (:quantity fruit) (:unit fruit) (:descent fruit) nil (:id fruit)))
+
 (defn show []
   (layout/common
     [:h1 "fruits"]
     (show-fruits)
+    [:a {:href "/" :class "back"} "Home"]))
+
+(defn requested []
+  (layout/common
+    [:h1 "fruits"]
+    (show-requested-fruits)
     [:a {:href "/" :class "back"} "Home"]))
 
 (defroutes home-routes
@@ -112,7 +178,10 @@
   (GET "/add" [] (insert_update))
   (GET "/add" [name price currency quantity unit descent error id] (insert_update name price currency quantity unit descent error id))
   (GET "/show" [] (show))
+  (GET "/requested" [] (requested))
   (POST "/save" [name price quantity unit descent currency id] (save-fruit name price currency quantity unit descent id))
+  (POST "/buy" [name price currency quantity reqqty unit descent id] (buy-fruit name price currency quantity reqqty unit descent id))
+  (GET "/buy/:id" [id] (update (crud/find-fruit id)))
   (GET "/delete/:id" [id] (delete-fruit id))
   (GET "/update/:id"[id] (show-fruit (crud/find-fruit id))))
 
