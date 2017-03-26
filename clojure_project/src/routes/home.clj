@@ -12,7 +12,6 @@
     [:div {:id "content"}
     [:h1 {:class "text-success"} "Welcome to my fruitstore"]
     [:br]
-    [:a {:href "/add"} "Request new type of fruit" ]
     [:br]
     [:a {:href "/show"} "Show available fruits" ]
     [:br]
@@ -40,7 +39,6 @@
             [:td (:unit fruit)]
             [:td (:descent fruit)]
             [:td (:currency fruit)]
-            [:td [:a {:href (str "/update/" (h (:id fruit)))} "update"]]
             [:td [:a {:href (str "/buy/" (h (:id fruit)))} "buy"]]]))])
 
 (defn show-requested-fruits []
@@ -60,7 +58,7 @@
             [:td [:a {:href (str "/delete/" (h (:id fruit)))} "delete"]]
             [:td [:a {:href (str "/update/" (h (:id fruit)))} "update"]]]))])
 
-(defn update [& [name price currency quantity reqqty unit descent id error]]
+(defn update-qty [& [name price currency quantity reqqty unit descent id error]]
   (layout/common
   [:h2 "Buy fruit"]
    [:a {:href "/" :class "back"} "Go Back"]
@@ -131,20 +129,19 @@
     (empty? descent)
     (insert_update  name price currency quantity unit descent "Enter descent" id)
     :else
-  (do
-    (if (nil? id)
-      (crud/save-fruit name price currency quantity unit descent)
-      (crud/update-fruit id name price currency quantity unit descent))
+  (do (crud/save-fruit name price currency quantity unit descent 0)
   (ring/redirect "/requested"))))
 
-(defn buy-fruit [name price currency quantity reqqty unit descent error &[id]]
+(defn buy-fruit [name price currency quantity reqqty unit descent & [id]]
   (cond
     (<= (parse-number quantity) 0)
-    (update  name price currency quantity reqqty unit descent "Fruit is out of stock" id)
+    (update-qty  name price currency quantity reqqty unit descent id "Fruit is out of stock")
+    (empty? reqqty)
+    (update-qty  name price currency quantity reqqty unit descent id "You have to enter requested qunatity")
     (<= (parse-number reqqty) 0)
-    (update  name price currency quantity reqqty unit descent "You have to request qunatity above 0" id)
+    (update-qty  name price currency quantity reqqty unit descent id "You have to request qunatity above 0")
     (<= (parse-number quantity) (parse-number reqqty))
-    (update  name price currency quantity reqqty unit descent "Requested qunatity is not available" id)
+    (update-qty name price currency quantity reqqty unit descent id "Requested qunatity is not available")
     :else
   (do
     (crud/decreaseFruitQty id (- (Integer/parseInt quantity) (Integer/parseInt reqqty)))
@@ -153,13 +150,13 @@
 (defn delete-fruit [id]
   (when-not (str/blank? id)
     (crud/delete-fruit id))
-  (ring/redirect "/show"))
+  (ring/redirect "/requested"))
 
 (defn show-fruit [fruit]
   (insert_update (:name fruit) (:price fruit) (:currency fruit) (:quantity fruit) (:unit fruit) (:descent fruit) nil (:id fruit)))
 
-(defn update-fruit [fruit]
-  (update (:name fruit) (:price fruit) (:currency fruit) (:quantity fruit) (:reqqty fruit) (:unit fruit) (:descent fruit) (:id fruit) nil))
+(defn update-fruit-qty [fruit]
+  (update-qty (:name fruit) (:price fruit) (:currency fruit) (:quantity fruit) (:reqqty fruit) (:unit fruit) (:descent fruit) (:id fruit) nil))
 
 (defn show []
   (layout/common
@@ -170,18 +167,20 @@
 (defn requested []
   (layout/common
     [:h1 "fruits"]
+    [:a {:href "/add"} "Request new type of fruit" ]
+    [:br]
     (show-requested-fruits)
     [:a {:href "/" :class "back"} "Home"]))
 
 (defroutes home-routes
   (GET "/" [] (indexpage))
-  (GET "/add" [] (insert_update))
-  (GET "/add" [name price currency quantity unit descent error id] (insert_update name price currency quantity unit descent error id))
   (GET "/show" [] (show))
   (GET "/requested" [] (requested))
-  (POST "/save" [name price quantity unit descent currency id] (save-fruit name price currency quantity unit descent id))
+  (GET "/add" [] (insert_update))
+  (GET "/add" [name price currency quantity unit descent error id] (insert_update name price currency quantity unit descent error id))
+  (POST "/save" [name price currency quantity unit descent id] (save-fruit name price currency quantity unit descent id))
   (POST "/buy" [name price currency quantity reqqty unit descent id] (buy-fruit name price currency quantity reqqty unit descent id))
-  (GET "/buy/:id" [id] (update-fruit (crud/find-fruit id)))
+  (GET "/buy/:id" [id] (update-fruit-qty (crud/find-fruit id)))
   (GET "/delete/:id" [id] (delete-fruit id))
   (GET "/update/:id"[id] (show-fruit (crud/find-fruit id))))
 
