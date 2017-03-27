@@ -23,13 +23,13 @@
       ["SELECT * FROM fruit WHERE stock=0 ORDER BY name ASC"]
       (doall res))))
 
-(defn save-fruit [name price currency quantity unit descent stock]
+(defn save-fruit [name quantity unit descent stock]
   (jdbc/with-connection
     db
     (jdbc/insert-values
       :fruit
-      [:name :price :currency :quantity :unit :descent :stock]
-      [name price currency quantity unit descent stock])))
+      [:name :quantity :unit :descent :stock]
+      [name quantity unit descent stock])))
 
 (defn delete-fruit [id]
   (jdbc/with-connection

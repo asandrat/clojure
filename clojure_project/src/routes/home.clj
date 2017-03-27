@@ -85,31 +85,30 @@
            [:hr]
            [:a {:href "/" :class "back"} "Go Back"])))
 
-(defn insert-update [& [name price currency quantity unit descent id error]]
+(defn insert-or-update [id nulloption notnulloption]
+  (if (nil? id)
+        (str nulloption)
+        (str notnulloption)))
+
+(defn insert-update [& [name quantity unit descent id error]]
   (layout/common
-  [:h2 (if (nil? id) "Request fruit" "Update requsted fruit")]
+  [:h2 (insert-or-update id "Request fruit" "Update requsted fruit")]
   (form-to {:id "frm_insert"}
     [:post "/save"]
            [:p {:style "color:red;"} error]
            [:hr]
-           (if (not (nil? id))
-           [:p "Id:"])
-           (if (not (nil? id))
-           (text-field {:readonly true} "id" id))
+           (if (not (nil? id)) [:p "Id:"])
+           (if (not (nil? id)) (text-field {:readonly true} "id" id))
            [:p "Name:"]
            (text-field "name" name)
-           [:p "Price:" ]
-           (text-field {:id "price"} "price" price)
-           [:p "Currency:"]
-           (text-field "currency" currency)
-           [:p "Quantity:"]
+           [:p "Requsted quantity:"]
            (text-field {:rows 5 :cols 30} "quantity" quantity)
            [:p "unit:"]
            (text-field "unit" unit)
            [:p "Descent:"]
            (text-field "descent" descent)
            [:br] [:br]
-           (submit-button "Request")
+           (submit-button (insert-or-update id "Request" "Update Request"))
            [:hr]
            [:br]
            [:a {:href "/" :class "back"} "Go Back"])))
@@ -118,22 +117,20 @@
   (if (re-find #"^-?\d+\.?\d*$" s)
     (read-string s)))
 
-(defn save-fruit [name price currency quantity unit descent & [id]]
+(defn save-fruit [name quantity unit descent & [id]]
   (cond
     (empty? name)
-    (insert-update  name price currency quantity unit descent "Fruit name must be entered" id)
-    (nil? (parse-number price))
-    (insert-update name price currency quantity unit descent "Price must be a number" id)
-    (empty? currency)
-    (insert-update name price currency quantity unit descent "Currency must be entered!" id)
+    (insert-update  name quantity unit descent id "Fruit name must be entered")
+    (empty? quantity)
+    (insert-update  name quantity unit descent id "Requsted quantity must be entered")
     (<= (parse-number quantity) 0)
-    (insert-update name price currency quantity unit descent "Enter quantity!" id)
+    (insert-update name quantity unit descent id "Requsted quantity must be above zero!")
     (empty? unit)
-    (insert-update name price currency quantity unit descent "Please fill unit" id)
+    (insert-update name quantity unit descent id "Please fill unit")
     (empty? descent)
-    (insert-update name price currency quantity unit descent "Enter descent" id)
+    (insert-update name quantity unit descent id "Enter descent")
     :else
-  (do (crud/save-fruit name price currency quantity unit descent 0)
+  (do (crud/save-fruit name quantity unit descent 0)
   (ring/redirect "/requested"))))
 
 (defn buy-fruit [name price currency quantity reqqty unit descent & [id]]
@@ -157,7 +154,7 @@
   (ring/redirect "/requested"))
 
 (defn show-fruit [fruit]
-  (insert-update (:name fruit) (:price fruit) (:currency fruit) (:quantity fruit) (:unit fruit) (:descent fruit) (:id fruit) nil))
+  (insert-update (:name fruit) (:quantity fruit) (:unit fruit) (:descent fruit) (:id fruit) nil))
 
 (defn update-fruit-qty [fruit]
   (update-qty (:name fruit) (:price fruit) (:currency fruit) (:quantity fruit) (:reqqty fruit) (:unit fruit) (:descent fruit) (:id fruit) nil))
@@ -181,8 +178,8 @@
   (GET "/show" [] (show))
   (GET "/requested" [] (requested))
   (GET "/add" [] (insert-update))
-  (GET "/add" [name price currency quantity unit descent id error] (insert-update name price currency quantity unit descent id error))
-  (POST "/save" [name price currency quantity unit descent id] (save-fruit name price currency quantity unit descent id))
+  (GET "/add" [name quantity unit descent id error] (insert-update currency quantity unit descent id error))
+  (POST "/save" [name quantity unit descent id] (save-fruit name quantity unit descent id))
   (POST "/buy" [name price currency quantity reqqty unit descent id] (buy-fruit name price currency quantity reqqty unit descent id))
   (GET "/buy/:id" [id] (update-fruit-qty (crud/find-fruit id)))
   (GET "/delete/:id" [id] (delete-fruit id))
