@@ -9,7 +9,7 @@
             [compojure.route :as route]))
 
 (defn init []
-  (if-not (.exists (java.io.File. "./dump.sql"))
+  (if-not (.exists (java.io.File. "./sandrafruit.sqlite"))
     (ddl/create-table-fruit)))
 
 (defn destroy []

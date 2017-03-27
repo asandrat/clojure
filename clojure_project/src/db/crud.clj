@@ -3,11 +3,9 @@
   (:import java.sql.DriverManager))
 
 (def db
-  {:classname "com.mysql.jdbc.Driver"
-   :subprotocol "mysql"
-   :subname "//127.0.0.1:3306/sandrafruit"
-   :user "root"
-   :password ""})
+  {:classname "org.sqlite.JDBC",
+         :subprotocol "sqlite",
+         :subname "sandrafruit.sqlite"})
 
 (defn read-fruit []
   (jdbc/with-connection
@@ -46,13 +44,13 @@
         ["SELECT * FROM fruit WHERE id= ?" id]
         (doall res)))))
 
-(defn update-fruit [id name price currency quantity unit descent]
+(defn update-fruit [id name quantity unit descent stock]
   (jdbc/with-connection
     db
     (jdbc/update-values
       :fruit
       ["id=?" id]
-      {:name name :price price :currency currency :quantity quantity :unit unit :descent descent})))
+      {:name name :quantity quantity :unit unit :descent descent})))
 
 (defn decreaseFruitQty [id quantity]
   (jdbc/with-connection

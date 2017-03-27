@@ -9,7 +9,7 @@
                  [ring-server "0.3.1"]
                  [compojure "1.1.6"]
                  [org.clojure/java.jdbc "0.2.3"]
-                 [mysql/mysql-connector-java "5.1.18"]]
+                 [org.xerial/sqlite-jdbc "3.7.2"]]
   :plugins [[lein-ring "0.8.12"]]
   :ring {:init clojure-project.handler/createTable
          :handler clojure-project.handler/app

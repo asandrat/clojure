@@ -24,7 +24,7 @@
      [:th "Id"]
      [:th "Name"]
      [:th "Price"]
-     [:th {:width 250} "Quantity"]
+     [:th "Quantity"]
      [:th "Unit"]
      [:th "Descent"]
      [:th "Currency"]]]
@@ -102,7 +102,7 @@
            [:p "Name:"]
            (text-field "name" name)
            [:p "Requsted quantity:"]
-           (text-field {:rows 5 :cols 30} "quantity" quantity)
+           (text-field "quantity" quantity)
            [:p "unit:"]
            (text-field "unit" unit)
            [:p "Descent:"]
@@ -130,7 +130,8 @@
     (empty? descent)
     (insert-update name quantity unit descent id "Enter descent")
     :else
-  (do (crud/save-fruit name quantity unit descent 0)
+  (do (if (nil? id) (crud/save-fruit name quantity unit descent 0)
+        (crud/update-fruit id name quantity unit descent 0))
   (ring/redirect "/requested"))))
 
 (defn buy-fruit [name price currency quantity reqqty unit descent & [id]]
@@ -178,7 +179,7 @@
   (GET "/show" [] (show))
   (GET "/requested" [] (requested))
   (GET "/add" [] (insert-update))
-  (GET "/add" [name quantity unit descent id error] (insert-update currency quantity unit descent id error))
+  (GET "/add" [name quantity unit descent id error] (insert-update name quantity unit descent id error))
   (POST "/save" [name quantity unit descent id] (save-fruit name quantity unit descent id))
   (POST "/buy" [name price currency quantity reqqty unit descent id] (buy-fruit name price currency quantity reqqty unit descent id))
   (GET "/buy/:id" [id] (update-fruit-qty (crud/find-fruit id)))
