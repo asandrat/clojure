@@ -13,51 +13,52 @@
     [:h1 {:style "color: orange;"} "Hi! Welcome to my fruitstore"]
     [:br]
     [:br]
-    [:h2 [:a {:href "/show" :style "text-decoration: none;"} "Show available fruits &nbsp;&nbsp;" ]]
-    [:h2 [:a {:href "/requested" :style "text-decoration: none;"} "&nbsp;&nbsp;Show requested fruits" ]]]))
+    [:h2 [:a {:href "/show" :class "button"} "Show available fruits" ]]
+    [:h2 [:a {:href "/requested" :class "button"} "Show requested fruits" ]]]))
 
 
 (defn show-fruits []
-  [:table {:border 1}
+  [:table {:class "table"}
    [:thead
     [:tr
-     [:th "Id"]
-     [:th "Name"]
-     [:th "Price"]
-     [:th "Quantity"]
-     [:th "Unit"]
-     [:th "Descent"]
-     [:th "Currency"]]]
+     [:th {:class "column"} "Id"]
+     [:th {:class "column"}"Name"]
+     [:th {:class "column"} "Price"]
+     [:th {:class "column"} "Quantity"]
+     [:th {:class "column"} "Unit"]
+     [:th {:class "column"} "Descent"]
+     [:th {:class "column"} "Currency"]]]
    (into [:tbody]
          (for [fruit (crud/read-fruit)]
            [:tr
-            [:td (:id fruit)]
-            [:td (:name fruit)]
-            [:td (:price fruit)]
-            [:td (:quantity fruit)]
-            [:td (:unit fruit)]
-            [:td (:descent fruit)]
-            [:td (:currency fruit)]
-            [:td [:a {:href (str "/buy/" (h (:id fruit))) :style "text-decoration: none;"} "Buy"]]]))])
+            [:td {:class "columnentry"} (:id fruit)]
+            [:td {:class "columnentry"} (:name fruit)]
+            [:td {:class "columnentry"} (:price fruit)]
+            [:td {:class "columnentry"} (:quantity fruit)]
+            [:td {:class "columnentry"} (:unit fruit)]
+            [:td {:class "columnentry"} (:descent fruit)]
+            [:td {:class "columnentry"} (:currency fruit)]
+            [:td [:a {:href (str "/buy/" (h (:id fruit))) :class "button"} "Buy"]]]))])
 
 (defn show-requested-fruits []
   (if (> (count (crud/read-request-fruit)) 0)
-  [:table {:style "color:grey;"}
+    (layout/common 
+  [:table {:class "table"}
    [:thead
     [:tr
-     [:th {:style "color:orange;"} "Name&nbsp;" ]
-     [:th {:style "color:orange;"} "Quantity&nbsp;"]
-     [:th {:style "color:orange;"} "Descent&nbsp;"]
+     [:th {:class "column"} "Name" ]
+     [:th {:class "column"} "Quantity"]
+     [:th {:class "column"} "Descent"]
      [:th ""]
      [:th ""]]]
    (into [:tbody]
          (for [fruit (crud/read-request-fruit)]
            [:tr
-            [:td (:name fruit)]
-            [:td (:quantity fruit)]
-            [:td (:descent fruit)]
-            [:td [:a {:href (str "/delete/" (h (:id fruit))) :style "text-decoration: none;"} "Delete&nbsp;"]]
-            [:td [:a {:href (str "/update/" (h (:id fruit))) :style "text-decoration: none;"} "Update"]]]))]))
+            [:td {:class "columnentry"} (:name fruit)]
+            [:td {:class "columnentry"} (:quantity fruit)]
+            [:td {:class "columnentry"} (:descent fruit)]
+            [:td [:a {:href (str "/delete/" (h (:id fruit))) :class "button"} "Delete"]]
+            [:td [:a {:href (str "/update/" (h (:id fruit))) :class "button"} "Update"]]]))])))
 
 (defn update-qty [& [name price currency quantity reqqty unit descent id error]]
   (layout/common
@@ -83,7 +84,7 @@
            [:br] [:br]
            (submit-button "Buy")
            [:hr]
-           [:a {:href "/" :class "back"} "Go Back"])))
+           [:a {:href "/" :class "home"} "Go Back"])))
 
 (defn insert-or-update [id nulloption notnulloption]
   (if (nil? id)
@@ -111,7 +112,7 @@
            (submit-button (insert-or-update id "Request" "Update Request"))
            [:hr]
            [:br]
-           [:a {:href "/" :class "back"} "Go Back"])))
+           [:a {:href "/" :class "home"} "Go Back"])))
 
 (defn parse-number [s]
   (if (re-find #"^-?\d+\.?\d*$" s)
@@ -162,17 +163,17 @@
 
 (defn show []
   (layout/common
-    [:h1 "fruits"]
+    [:h1 "Available Fruit"]
     (show-fruits)
-    [:a {:href "/" :class "back" } "Home"]))
+    [:a {:href "/" :class "home" } "Go Back"]))
 
 (defn requested []
   (layout/common
-    [:h1 "Requested Fruits" ]
-    [:a {:href "/add" :style "text-decoration: none;"} "Request new type of fruit" ]
+    [:h1 "Requested Fruit" ]
+    [:a {:href "/add" :class "button"} "Request new type of fruit" ]
     [:br]
     (show-requested-fruits)
-    [:a {:href "/" :class "back"} "Home"]))
+    [:a {:href "/" :class "home"} "Go Back"]))
 
 (defroutes home-routes
   (GET "/" [] (indexpage))
