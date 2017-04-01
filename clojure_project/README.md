@@ -9,9 +9,11 @@ leiningen installed on your machine (it was developed using LEIN_VERSION 2.7.1)
 
 ## Usage
 
-In order to run the app, navigate to the project root folder and run 
+In order to run the app in dev mode, navigate to the project root folder and run 
 	lein deps
-	lein ring server
+	lein repl
+	(use 'clojure-project.core)
+	(start-server)
 	
 ## License
 
